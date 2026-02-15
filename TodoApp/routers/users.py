@@ -3,11 +3,14 @@ from typing import Annotated
 from passlib.context import CryptContext
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, Path, APIRouter
+from fastapi import Depends, HTTPException, Path, APIRouter, Request
 from starlette import status
 from ..models import Users
 from ..database import SessionLocal
 from .auth import get_current_user, CreateUserRequest
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="TodoApp/templates")
 
 router = APIRouter(
     prefix="/users",
@@ -28,13 +31,21 @@ bcrypt_context = CryptContext(schemes=['bcrypt'],deprecated='auto')
 
 
 class UserVerification(BaseModel):
+    username: str
     password: str
     new_password: str = Field(min_length=6)
 
 class PhoneNumber(BaseModel):
     phone_number: str
 
+### Pages ###
 
+@router.get("/change-password-page")
+def render_change_password(request: Request):
+    return templates.TemplateResponse("change-password.html", {"request": request})
+
+
+#routers
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_userdata(user: user_dependency, db: db_dependency):
